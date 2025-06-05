@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Launch Example SMART App</title>
+        <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
+    </head>
+    <body>
+        <script>
+            FHIR.oauth2.authorize({
+
+              // The client_id that you should have obtained after registering a client at
+              // the EHR.
+              // Don't worry, I know this looks like a secret, but it is not!
+              clientId: "orc6sLRQoXLNdBKRlPaRSVMD8kt5U9a8Z0erRlrK",
+
+              // The scopes that you request from the EHR. In this case we want to:
+              scope: "patient/Patient.read patient/MedicationRequest.read launch offline_access openid fhirUser",
+
+              // Typically, if your redirectUri points to the root of the current directory
+              // (where the launchUri is), you can omit this option because the default value is
+              // ".". However, some servers do not support directory indexes so "." and "./"
+              // will not automatically map to the "index.html" file in that directory.
+              redirectUri: "index.html"
+            });
+        </script>
+    </body>
+</html>
