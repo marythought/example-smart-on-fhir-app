@@ -5,7 +5,7 @@
         <title>Example SMART App</title>
         <script src="https://cdn.jsdelivr.net/npm/fhirclient/build/fhir-client.js"></script>
         <style>
-            #patient, #meds {
+            #patient, #meds, #goals, #docs {
                 font-family: Monaco, monospace;
                 white-space: pre;
                 font-size: 13px;
@@ -22,6 +22,9 @@
         <h4>Goals</h4>
         <div id="goals">Loading...</div>
         <br/>
+        <h4>Documents</h4>
+        <div id="docs">Loading...</div>
+        <br/>
         <h4>Medications</h4>
         <div id="meds">Loading...</div>
         <script type="text/javascript">
@@ -37,7 +40,7 @@
                     }
                 );
 
-                client.request("/Goal?patient=" + client.patient.id, {
+                client.request("/Goal?patient=Patient/" + client.patient.id, {
                     resolveReferences: [ "goal" ],
                     graph: true
                 })
@@ -55,6 +58,28 @@
                     },
                     function(error) {
                         document.getElementById("goals").innerText = error.stack;
+                    }
+                );
+
+                // Get Documents for the selected patient
+                client.request("/DocumentReference?patient=" + client.patient.id, {
+                    resolveReferences: [ "documentReference" ],
+                    graph: true
+                })
+                // Reject if no Documents are found
+                .then(function(data) {
+                    if (!data.entry || !data.entry.length) {
+                        throw new Error("No documents found for the selected patient");
+                    }
+                    return data.entry;
+                })
+                // Render the current patient's documents (or any error)
+                .then(
+                    function(docs) {
+                        document.getElementById("docs").innerText = JSON.stringify(docs, null, 4);
+                    },
+                    function(error) {
+                        document.getElementById("docs").innerText = error.stack;
                     }
                 );
 
