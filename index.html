@@ -19,6 +19,9 @@
         <h4>Current Patient</h4>
         <div id="patient">Loading...</div>
         <br/>
+        <h4>Goals</h4>
+        <div id="goals">Loading...</div>
+        <br/>
         <h4>Medications</h4>
         <div id="meds">Loading...</div>
         <script type="text/javascript">
@@ -31,6 +34,27 @@
                     },
                     function(error) {
                         document.getElementById("patient").innerText = error.stack;
+                    }
+                );
+
+                client.request("/Goal?patient=" + client.patient.id, {
+                    resolveReferences: [ "goal" ],
+                    graph: true
+                })
+                // Reject if no Goals are found
+                .then(function(data) {
+                    if (!data.entry || !data.entry.length) {
+                        throw new Error("No goals found for the selected patient");
+                    }
+                    return data.entry;
+                })
+                // Render the current patient's goals (or any error)
+                .then(
+                    function(goals) {
+                        document.getElementById("goals").innerText = JSON.stringify(goals, null, 4);
+                    },
+                    function(error) {
+                        document.getElementById("goals").innerText = error.stack;
                     }
                 );
 
