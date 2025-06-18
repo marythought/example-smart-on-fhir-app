@@ -5,7 +5,7 @@
     "description": "Edit the description in CANVAS_MANIFEST.json",
     "url_permissions": [
         {
-            "url": "https://marythought.github.io/example-smart-on-fhir-app/",
+            "url": "https://marythought.github.io",
             "permissions": ["ALLOW_SAME_ORIGIN"]
         }
     ],
