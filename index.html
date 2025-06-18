@@ -51,25 +51,30 @@
                 .then(
                     function(docs) {
                         document.getElementById("docs").innerText = JSON.stringify(docs, null, 4);
+
+                        // Ensure docs is an array
+                        if (!Array.isArray(docs)) {
+                            console.log("Expected docs to be an array, but got:", docs);
+                            docs = [];
+                        }
+                        // Find the first DocumentReference with a content attachment
+                        var doc = docs.find(function(d) {
+                            return d.resource.content && d.resource.content.length > 0;
+                        });
+
+                        console.log("Found document:", doc);
+                        if (doc && doc.resource.content[0].attachment && doc.resource.content[0].attachment.url) {
+                            // If an S3 URL is found, open it in a new tab
+                            window.open(doc.resource.content[0].attachment.url, "_blank");
+                        } else {
+                            console.warn("No S3 URL found in the documents.");
+                        }
                     },
                     function(error) {
                         document.getElementById("docs").innerText = error.stack;
                     }
                 )
-                // then look for an s3 url and render it
-                .then(function(docs) {
-                    // Find the first DocumentReference with a content attachment
-                    var doc = docs.find(function(d) {
-                        return d.resource.content && d.resource.content.length > 0;
-                    });
 
-                    if (doc && doc.resource.content[0].attachment && doc.resource.content[0].attachment.url) {
-                        // If an S3 URL is found, open it in a new tab
-                        window.open(doc.resource.content[0].attachment.url, "_blank");
-                    } else {
-                        console.warn("No S3 URL found in the documents.");
-                    }
-                })
             }).catch(console.error);
         </script>
     </body>
