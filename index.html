@@ -20,7 +20,12 @@
         <div id="patient">Loading...</div>
         <br/>
         <h4>Documents</h4>
-        <div id="docs">Loading...</div>
+        <div id="docs">
+            <p id="docsMessage">Loading...</p>
+            <ul id="docsList">
+                <!-- Document links will be added here -->
+            </ul>
+        </div>
         <br/>
         <script type="text/javascript">
             FHIR.oauth2.ready().then(function(client) {
@@ -50,28 +55,63 @@
                 // Render the current patient's documents (or any error)
                 .then(
                     function(docs) {
-                        document.getElementById("docs").innerText = JSON.stringify(docs, null, 4);
+                        // Set the message above the document list without removing the <ul>
+                        var docsDiv = document.getElementById("docs");
+                        var messageId = "docsMessage";
+                        var messageElem = document.getElementById(messageId);
+                        if (!messageElem) {
+                            messageElem = document.createElement("div");
+                            messageElem.id = messageId;
+                            docsDiv.insertBefore(messageElem, docsDiv.firstChild);
+                        }
+                        messageElem.innerText = "Found " + docs.length + " documents for the current patient.";
 
                         // Ensure docs is an array
                         if (!Array.isArray(docs)) {
                             console.log("Expected docs to be an array, but got:", docs);
                             docs = [];
                         }
-                        // Find the first DocumentReference with a content attachment
-                        var doc = docs.find(function(d) {
-                            return d.resource.content && d.resource.content.length > 0;
+                        // Find all DocumentReferences with non-empty content and at least one attachment with a non-empty extension
+                        var docsWithAttachmentExtension = docs.filter(function(d) {
+                            return (
+                                d.resource.content &&
+                                d.resource.content.length > 0 &&
+                                d.resource.content.some(function(content) {
+                                    return (
+                                        content.attachment &&
+                                        Array.isArray(content.attachment.extension) &&
+                                        content.attachment.extension.length > 0
+                                    );
+                                })
+                            );
                         });
 
-                        console.log("Found document:", doc);
-                        if (doc && doc.resource.content[0].attachment && doc.resource.content[0].attachment.url) {
-                            // If an S3 URL is found, open it in a new tab
-                            window.open(doc.resource.content[0].attachment.url, "_blank");
-                        } else {
-                            console.warn("No S3 URL found in the documents.");
-                        }
+                        // for each doc in docsWithAttachmentExtension, add a list item to the docList that contains the description and the URL (which is the valueUri of the first extension)
+                        var docList = document.getElementById("docsList");
+                        docsWithAttachmentExtension.forEach(function(doc) {
+                            if (
+                                doc.resource.content &&
+                                doc.resource.content[0].attachment &&
+                                doc.resource.content[0].attachment.extension &&
+                                doc.resource.content[0].attachment.extension[0] &&
+                                doc.resource.content[0].attachment.extension[0].valueUri
+                            ) {
+                                var url = doc.resource.content[0].attachment.extension[0].valueUri;
+                                var li = document.createElement("li");
+                                var a = document.createElement("a");
+                                a.href = url;
+                                a.textContent = "Document: " + doc.resource.description;
+                                a.target = "_blank";
+                                li.appendChild(a);
+                                docList.appendChild(li);
+                            } else {
+                                console.warn("Document does not have a valid attachment extension:", doc);
+                            }
+                        });
                     },
                     function(error) {
-                        document.getElementById("docs").innerText = error.stack;
+                        document.getElementById("docs").innerText = "Error loading documents: " + error.message;
+                        console.error("Error loading documents:", error);
                     }
                 )
 
