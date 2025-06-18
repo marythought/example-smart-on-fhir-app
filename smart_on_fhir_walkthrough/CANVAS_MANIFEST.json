@@ -7,6 +7,10 @@
         {
             "url": "https://marythought.github.io",
             "permissions": ["ALLOW_SAME_ORIGIN"]
+        },
+        {
+            "url": "https://canvas-client-media.s3.amazonaws.com/",
+            "permissions": ["ALLOW_SAME_ORIGIN"]
         }
     ],
     "components": {
